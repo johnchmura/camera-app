@@ -1,14 +1,11 @@
-import joblib
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import cv2
 import numpy as np
 
-# Function to extract pose landmarks from a single image
-def extract_pose_data_from_image(image_path):
-    # Function to process pose landmarks and extract them
-    def extract_landmarks(rgb_image, detector):
+
+def extract_landmarks(rgb_image, detector):
         # Convert the OpenCV image to MediaPipe Image format
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_image)
 
@@ -25,6 +22,9 @@ def extract_pose_data_from_image(image_path):
             landmarks.extend([landmark.x, landmark.y, landmark.z])
 
         return landmarks
+    
+# Function to extract pose landmarks from a single image
+def extract_pose_data_from_image(image_path):
 
     # Initialize PoseLandmarker
     base_options = python.BaseOptions(model_asset_path='models/mediapipe/pose_landmarker_lite.task')
@@ -51,7 +51,3 @@ def extract_pose_data_from_image(image_path):
     else:
         print(f"No landmarks detected in the image: {image_path}")
         return None
-
-image_path = 'test.png'  # Replace with your image path
-pose_data = extract_pose_data_from_image(image_path)
-print(pose_data)
