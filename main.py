@@ -5,6 +5,11 @@ from pydantic import BaseModel
 from typing import List
 from pose_classifier import make_prediction_data  # Ensure this is implemented correctly
 from media_pipe import extract_pose_data_from_image, extract_pose_data_from_image_data
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from typing import Dict
+
+
+
 # Creating FastAPI instance
 app = FastAPI()
 
@@ -50,13 +55,14 @@ def extract_pose_data(request: ImageRequest):
     except Exception as e:
         # Handle any unexpected errors
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
-    
+
+
 
 @app.post('/read-from-data')
-async def extract_pose_data(request: ImageRequest, image):
+async def extract_pose_data(image: UploadFile = File(...)) -> Dict:
     """
     Extract pose data from the given image.
-    The image is expected to be uploaded as raw byte data.
+    The image is expected to be uploaded as a file.
     """
     try:
         # Read the image data from the uploaded file
@@ -64,12 +70,13 @@ async def extract_pose_data(request: ImageRequest, image):
 
         # Process the image using Mediapipe
         pose_data = extract_pose_data_from_image_data(image_data)
+        prediction = make_prediction_data(pose_data)
 
         if not pose_data:
             raise HTTPException(status_code=404, detail="No pose data could be extracted from the image.")
 
         # Return the extracted pose data
-        return {"pose_data": pose_data}
+        return {"prediction": prediction}
 
     except Exception as e:
         # Handle any unexpected errors
