@@ -4,7 +4,7 @@ from sklearn.naive_bayes import GaussianNB
 from pydantic import BaseModel
 from typing import List
 from pose_classifier import make_prediction_data  # Ensure this is implemented correctly
-from media_pipe import extract_pose_data_from_image
+from media_pipe import extract_pose_data_from_image, extract_pose_data_from_image_data
 # Creating FastAPI instance
 app = FastAPI()
 
@@ -46,6 +46,30 @@ def extract_pose_data(request: ImageRequest):
 
         # Return the extracted pose data
         return {"image_name": request.image_name, "pose_data": pose_data}
+
+    except Exception as e:
+        # Handle any unexpected errors
+        raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+    
+
+@app.post('/read-from-data')
+async def extract_pose_data(request: ImageRequest, image):
+    """
+    Extract pose data from the given image.
+    The image is expected to be uploaded as raw byte data.
+    """
+    try:
+        # Read the image data from the uploaded file
+        image_data = await image.read()
+
+        # Process the image using Mediapipe
+        pose_data = extract_pose_data_from_image_data(image_data)
+
+        if not pose_data:
+            raise HTTPException(status_code=404, detail="No pose data could be extracted from the image.")
+
+        # Return the extracted pose data
+        return {"pose_data": pose_data}
 
     except Exception as e:
         # Handle any unexpected errors

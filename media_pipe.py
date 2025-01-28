@@ -51,3 +51,51 @@ def extract_pose_data_from_image(image_path):
     else:
         print(f"No landmarks detected in the image: {image_path}")
         return None
+
+def extract_pose_data_from_image_data(image_data):
+    """
+    Extracts pose landmarks from raw image data (JPEG/PNG bytes) in memory.
+    
+    :param image_data: Raw image data (e.g., JPEG or PNG bytes)
+    :return: List of landmarks [x, y, z] or None if no landmarks are detected
+    """
+    # Initialize PoseLandmarker
+    base_options = python.BaseOptions(model_asset_path='models/mediapipe/pose_landmarker_lite.task')
+    options = vision.PoseLandmarkerOptions(
+        base_options=base_options,
+        output_segmentation_masks=False)
+    detector = vision.PoseLandmarker.create_from_options(options)
+
+    # Read the image from memory
+    bgr_image = read_image_from_memory(image_data)
+
+    if bgr_image is None:
+        print("Failed to decode the image from memory.")
+        return None
+
+    # Convert BGR image to RGB
+    rgb_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
+
+    # Extract landmarks
+    landmarks = extract_landmarks(rgb_image, detector)
+
+    if landmarks:
+        return landmarks
+    else:
+        print("No landmarks detected in the image.")
+        return None
+    
+def read_image_from_memory(image_data):
+    """
+    Reads an image from raw bytes in memory using OpenCV.
+    
+    :param image_data: Raw image data (e.g., bytes)
+    :return: Decoded BGR image or None if decoding fails
+    """
+    # Convert raw bytes into a NumPy array
+    image_array = np.frombuffer(image_data, np.uint8)
+    
+    # Decode the image
+    bgr_image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    
+    return bgr_image
