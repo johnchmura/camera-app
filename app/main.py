@@ -3,8 +3,8 @@ from sklearn.datasets import load_iris
 from sklearn.naive_bayes import GaussianNB
 from pydantic import BaseModel
 from typing import List
-from pose_classifier import make_prediction_data  # Ensure this is implemented correctly
-from media_pipe import extract_pose_data_from_image, extract_pose_data_from_image_data
+from utilities.pose_classifier import make_prediction_data  # Ensure this is implemented correctly
+from utilities.media_pipe import extract_pose_data_from_image, extract_pose_data_from_image_data
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from typing import Dict
 

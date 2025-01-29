@@ -1,6 +1,6 @@
 import joblib
 from typing import List
-from media_pipe import extract_pose_data_from_image
+from utilities.media_pipe import extract_pose_data_from_image
 
 def make_prediction_image(image_path: str):
 

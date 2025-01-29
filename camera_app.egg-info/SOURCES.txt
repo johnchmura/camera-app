@@ -1,0 +1,10 @@
+setup.py
+camera_app.egg-info/PKG-INFO
+camera_app.egg-info/SOURCES.txt
+camera_app.egg-info/dependency_links.txt
+camera_app.egg-info/top_level.txt
+testing/__init__.py
+testing/testing.py
+utilities/__init__.py
+utilities/images.py
+utilities/leading_lines.py
