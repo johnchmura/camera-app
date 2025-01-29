@@ -1,97 +1,66 @@
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-from cv2 import imread, cvtColor, COLOR_BGR2RGB
+import numpy as np
+from cv2 import imread,cvtColor,COLOR_BGR2RGB
 from utilities.images import read_image_from_memory
 
-def extract_landmarks(rgb_image, detector):
+# Singleton pattern for efficient PoseLandmarker initialization
+_landmarker = None
+
+def get_pose_landmarker():
+    """Initializes the PoseLandmarker model only once (singleton)."""
+    global _landmarker
+    if _landmarker is None:
+        base_options = python.BaseOptions(model_asset_path='models/mediapipe/pose_landmarker_lite.task')
+        options = vision.PoseLandmarkerOptions(base_options=base_options, output_segmentation_masks=False)
+        _landmarker = vision.PoseLandmarker.create_from_options(options)
+    return _landmarker
+
+def extract_landmarks(rgb_image):
     """
-    Extracts pose landmarks (x, y, z coordinates) from a given RGB image using a MediaPipe PoseLandmarker.
+    Extracts pose landmarks from an RGB image using MediaPipe PoseLandmarker.
+
+    :param rgb_image: RGB image as a NumPy array.
+    :return: Flattened list of (x, y, z) landmarks or None if no landmarks detected.
+    """
+    detector = get_pose_landmarker()
     
-    :param rgb_image: The image in RGB format (numpy array).
-    :param detector: A MediaPipe PoseLandmarker instance to detect landmarks.
-    :return: A list of landmarks in the form [x1, y1, z1, x2, y2, z2, ..., xn, yn, zn] 
-             or None if no landmarks are detected.
-    """
-    # Convert the OpenCV image (RGB) to MediaPipe Image format
+    # Convert OpenCV image (RGB) to MediaPipe Image format
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_image)
 
-    # Detect pose landmarks in the image
+    # Detect pose landmarks
     detection_result = detector.detect(mp_image)
 
-    # If no landmarks are detected, return None
-    if not detection_result.pose_landmarks:
-        return None
-
-    # Extract and return the landmarks as a flattened list of x, y, z coordinates
-    landmarks = []
-    for landmark in detection_result.pose_landmarks[0]:
-        landmarks.extend([landmark.x, landmark.y, landmark.z])
-
-    return landmarks
+    # Return landmarks as a NumPy array (flattened)
+    if detection_result.pose_landmarks:
+        return np.array([[lm.x, lm.y, lm.z] for lm in detection_result.pose_landmarks[0]]).flatten().tolist()
     
-def extract_pose_data_from_image(image_path):
-    """
-    Extracts pose landmarks from a single image file located at the specified path.
-    
-    :param image_path: Path to the image file (string).
-    :return: A list of landmarks [x, y, z] or None if no landmarks are detected.
-    """
-    # Initialize the PoseLandmarker with the model path for lightweight pose detection
-    base_options = python.BaseOptions(model_asset_path='models/mediapipe/pose_landmarker_lite.task')
-    options = vision.PoseLandmarkerOptions(
-        base_options=base_options,
-        output_segmentation_masks=False)  # We do not need segmentation masks
-    detector = vision.PoseLandmarker.create_from_options(options)
+    print("No landmarks detected in the image.")
+    return None
 
-    # Read the image from the file path
-    bgr_image = imread(image_path)
+def extract_pose_data(image):
+    """
+    Extracts pose landmarks from an image (file path, NumPy array, or raw bytes).
+
+    :param image: Image input (str: file path, np.ndarray: OpenCV frame, bytes: raw image).
+    :return: Flattened list of (x, y, z) landmarks or None.
+    """
+    input_handlers = {
+        str: lambda img: imread(img),  # File path
+        np.ndarray: lambda img: img,       # Already a NumPy array (frame from OpenCV)
+        bytes: lambda img: read_image_from_memory(img)  # Raw image data
+    }
+
+    # Select appropriate handler based on input type
+    bgr_image = input_handlers.get(type(image), lambda _: None)(image)
 
     if bgr_image is None:
-        print(f"Failed to read the image from {image_path}")
+        print("Failed to load image.")
         return None
 
-    # Convert the image from BGR to RGB format (as required by MediaPipe)
+    # Convert BGR to RGB for MediaPipe processing
     rgb_image = cvtColor(bgr_image, COLOR_BGR2RGB)
 
-    # Extract and return pose landmarks from the image
-    landmarks = extract_landmarks(rgb_image, detector)
-
-    if landmarks:
-        return landmarks
-    else:
-        print(f"No landmarks detected in the image: {image_path}")
-        return None
-
-def extract_pose_data_from_image_data(image_data):
-    """
-    Extracts pose landmarks from raw image data (such as JPEG or PNG bytes) in memory.
-    
-    :param image_data: Raw image data in bytes (e.g., JPEG/PNG).
-    :return: A list of landmarks [x, y, z] or None if no landmarks are detected.
-    """
-    # Initialize the PoseLandmarker with the model path for lightweight pose detection
-    base_options = python.BaseOptions(model_asset_path='models/mediapipe/pose_landmarker_lite.task')
-    options = vision.PoseLandmarkerOptions(
-        base_options=base_options,
-        output_segmentation_masks=False)  # We do not need segmentation masks
-    detector = vision.PoseLandmarker.create_from_options(options)
-
-    # Read the image from memory (e.g., JPEG/PNG bytes)
-    bgr_image = read_image_from_memory(image_data)
-
-    if bgr_image is None:
-        print("Failed to decode the image from memory.")
-        return None
-
-    # Convert the image from BGR to RGB format (as required by MediaPipe)
-    rgb_image = cvtColor(bgr_image, COLOR_BGR2RGB)
-
-    # Extract and return pose landmarks from the image
-    landmarks = extract_landmarks(rgb_image, detector)
-
-    if landmarks:
-        return landmarks
-    else:
-        print("No landmarks detected in the image.")
-        return None
+    # Extract and return pose landmarks
+    return extract_landmarks(rgb_image)
