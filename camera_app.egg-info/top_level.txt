@@ -1,2 +1,4 @@
+app
+photography
 testing
 utilities

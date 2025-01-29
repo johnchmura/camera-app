@@ -63,3 +63,4 @@ def save_pose_data_to_file(image_path: str, output_file: str):
         print(f"Pose data saved to {output_file}")
     else:
         print("No pose data extracted.")
+

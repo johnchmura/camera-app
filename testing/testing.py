@@ -1,6 +1,7 @@
 import cv2
-from utilities.leading_lines import detect_leading_lines, draw_detected_lines
-from utilities.media_pipe import extract_pose_data
+from photography.leading_lines import detect_leading_lines, draw_detected_lines
+from photography.rule_thirds import get_rule_thirds
+from utilities.media_pipe import extract_pose_data, find_pose, find_pitch, find_roll, find_yaw
 
 # Initialize camera
 cap = cv2.VideoCapture(0)  # 0 is usually the default camera
@@ -13,6 +14,7 @@ if not cap.isOpened():
 
 frame_count = 0
 pose, lines, circle_center, hitbox = None, None, None, None  # Cached results
+yaw, roll, pitch = 0, 0, 0  # Initial angles
 
 while True:
     # Capture frame
@@ -20,15 +22,30 @@ while True:
     if not ret:
         print("Error: Failed to capture image.")
         break
-
-    # Only compute pose and line detection every 5 frames
-    if frame_count % 10 == 0:
-        pose = extract_pose_data(frame)  # Extract pose data
+    
+    frame = cv2.flip(frame, 1)
+    # Only compute pose and line detection every 10 frames
+    if frame_count % 1 == 0:
+        pose = extract_pose_data(frame, running_mode='VIDEO', frame_count=frame_count)
+        if pose:
+            roll, yaw, pitch = find_pose(pose)  # Compute head angles
+            roll2 = find_roll(pose)
+            yaw2 = find_yaw(pose)
+            pitch2 = find_pitch(pose)
+            
         lines, circle_center, hitbox = detect_leading_lines(frame, pose)  # Detect lines
-
+    
     # Draw lines and bounding box using last computed values
     output_frame = draw_detected_lines(frame, lines, hitbox, circle_center)
-
+    output_frame, _ = get_rule_thirds(output_frame, highlight_point=circle_center)
+    
+    # Display yaw, roll, and pitch in the top-left corner
+    cv2.putText(output_frame, f"Yaw: {yaw:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    cv2.putText(output_frame, f"Roll: {roll:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    cv2.putText(output_frame, f"Pitch: {pitch:.2f}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    cv2.putText(output_frame, f"Yaw: {yaw2:.2f}", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    cv2.putText(output_frame, f"Roll: {roll2:.2f}", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    cv2.putText(output_frame, f"Pitch: {pitch2:.2f}", (10, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
     # Display the resulting frame
     cv2.imshow('Video Feed', output_frame)
 

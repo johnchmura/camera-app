@@ -15,3 +15,4 @@ def read_image_from_memory(image_data):
     bgr_image = imdecode(image_array, IMREAD_COLOR)
     
     return bgr_image
+
