@@ -222,3 +222,4 @@ def find_pose(landmarks):
     pitch = (-90 + 90 / 0.5 * dYnose / dYtot) if dYtot != 0 else 0  # Pitch angle
 
     return roll, yaw, pitch
+
