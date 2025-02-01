@@ -59,3 +59,28 @@ def save_pose_data_to_file(image_path: str, output_file: str):
         print(f"Pose data saved to {output_file}")
     else:
         print("No pose data extracted.")
+
+
+def get_gaze_direction(yaw):
+    """
+    Classifies whether a person is looking left, right, or straight based on the yaw angle.
+
+    Parameters:
+    ----------
+    yaw
+
+    Returns:
+    -------
+    str
+        A string indicating the gaze direction: "left", "right", or "straight".
+    """
+
+    # Define a threshold for yaw to determine left/right gaze
+    yaw_threshold = 35
+
+    if yaw < -yaw_threshold:
+        return "left"
+    elif yaw > yaw_threshold:
+        return "right"
+    else:
+        return "straight"

@@ -172,8 +172,6 @@ def find_pitch(landmarks):
     # Ratio of distances
     return e2n / n2m if n2m != 0 else 0
 
-import numpy as np
-
 def find_pose(landmarks):
     """
     Calculate the roll, yaw, and pitch of the face using a geometric approach.
@@ -218,8 +216,7 @@ def find_pose(landmarks):
     dYnose = (LMyr[2] - LMyr[0] + LMyr[4] - LMyr[0]) / 2
 
     # Calculate yaw and pitch
-    yaw = (-90 + 90 / 0.5 * dXnose / dXtot) if dXtot != 0 else 0  # Yaw angle
+    yaw = (-90 + 90 / 0.5 * dXnose / dXtot) + 230 if dXtot != 0 else 0  # Yaw angle
     pitch = (-90 + 90 / 0.5 * dYnose / dYtot) if dYtot != 0 else 0  # Pitch angle
 
     return roll, yaw, pitch
-
