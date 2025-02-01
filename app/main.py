@@ -20,7 +20,6 @@ class RequestBody(BaseModel):
 class ImageRequest(BaseModel):
     image_name: str
 
-
 @app.post('/pose-data')
 def get_pose_data(request: ImageRequest):
     """

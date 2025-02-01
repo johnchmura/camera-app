@@ -64,6 +64,7 @@ def extract_landmarks(rgb_image, running_mode='IMAGE', frame_count=None):
     print("No landmarks detected in the image.")
     return None
 
+
 def extract_pose_data(image, running_mode='IMAGE', frame_count=None):
     """
     Extracts pose landmarks from an image (file path, NumPy array, or raw bytes).
@@ -73,14 +74,15 @@ def extract_pose_data(image, running_mode='IMAGE', frame_count=None):
     :param frame_count: Frame count for VIDEO mode (required if running_mode is 'VIDEO').
     :return: Flattened list of (x, y, z) landmarks or None.
     """
-    input_handlers = {
-        str: lambda img: imread(img),  # File path
-        np.ndarray: lambda img: img,       # Already a NumPy array (frame from OpenCV)
-        bytes: lambda img: read_image_from_memory(img)  # Raw image data
-    }
-
-    # Select appropriate handler based on input type
-    bgr_image = input_handlers.get(type(image), lambda _: None)(image)
+    if isinstance(image, str):
+        bgr_image = imread(image)  # File path
+    elif isinstance(image, np.ndarray):
+        bgr_image = image  # Already a NumPy array (frame from OpenCV)
+    elif isinstance(image, bytes):
+        bgr_image = read_image_from_memory(image)  # Raw image data
+    else:
+        print("Failed to load image.")
+        return None
 
     if bgr_image is None:
         print("Failed to load image.")
