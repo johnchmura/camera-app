@@ -3,12 +3,10 @@ from sklearn.datasets import load_iris
 from sklearn.naive_bayes import GaussianNB
 from pydantic import BaseModel
 from typing import List
-from utilities.pose_classifier import make_prediction_data  # Ensure this is implemented correctly
-from utilities.media_pipe import extract_pose_data
+from utilities.pose_classifier import make_prediction_data, get_gaze_direction
+from utilities.media_pipe import extract_pose_data, find_pose
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from typing import Dict
-
-
 
 # Creating FastAPI instance
 app = FastAPI()
@@ -54,7 +52,9 @@ async def get_prediction(image: UploadFile = File(...)) -> Dict:
         # Process the image using Mediapipe
         pose_data = extract_pose_data(image_data)
         prediction = make_prediction_data(pose_data)
-
+        roll, yaw, pitch = find_pose(pose_data)
+        look = get_gaze_direction(yaw)
+        prediction = prediction +"direction: "+ look
         if not pose_data:
             raise HTTPException(status_code=404, detail="No pose data could be extracted from the image.")
 

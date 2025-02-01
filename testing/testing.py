@@ -17,8 +17,6 @@ pose, lines, circle_center, hitbox = None, None, None, None  # Cached results
 posture,yaw, roll, pitch,yaw2, roll2, pitch2 = "forward",0,0,0,0,0,0  # Initial angles
 
 
-
-
 while True:
     # Capture frame
     ret, frame = cap.read()
@@ -36,7 +34,7 @@ while True:
             roll2 = find_roll(pose)* 1000
             yaw2 = find_yaw(pose) * 1000
             pitch2 = find_pitch(pose) * 1000
-            lab1 = get_gaze_direction(yaw2)
+            lab1 = get_gaze_direction(yaw)
             #lab2 = get_gaze_direction(yaw2)
             
             
