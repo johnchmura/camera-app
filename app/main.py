@@ -63,4 +63,6 @@ async def get_prediction(image: UploadFile = File(...)) -> Dict:
 
     except Exception as e:
         # Handle any unexpected errors
+        return {"prediction": "No one found."}
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+
