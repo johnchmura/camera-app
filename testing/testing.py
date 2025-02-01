@@ -52,7 +52,7 @@ while True:
     cv2.putText(output_frame, f"Yaw: {yaw2:f}", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
     cv2.putText(output_frame, f"Roll: {roll2:f}", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
     cv2.putText(output_frame, f"Pitch: {pitch2:f}", (10, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-    cv2.putText(output_frame, f"label: {posture:s}", (10, 210), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    cv2.putText(output_frame, f"label: {lab1:s}", (10, 210), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
     # Display the resulting frame
     cv2.imshow('Video Feed', output_frame)
 

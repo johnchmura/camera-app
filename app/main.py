@@ -3,8 +3,10 @@ from sklearn.datasets import load_iris
 from sklearn.naive_bayes import GaussianNB
 from pydantic import BaseModel
 from typing import List
-from utilities.pose_classifier import make_prediction_data, get_gaze_direction
-from utilities.media_pipe import extract_pose_data, find_pose
+from photography.leading_lines import get_person_bounding_box
+from utilities.pose_classifier import make_prediction_data
+from utilities.media_pipe import extract_pose_data
+from utilities.images import read_image_from_memory
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from typing import Dict
 
@@ -48,21 +50,21 @@ async def get_prediction(image: UploadFile = File(...)) -> Dict:
     try:
         # Read the image data from the uploaded file
         image_data = await image.read()
-
-        # Process the image using Mediapipe
-        pose_data = extract_pose_data(image_data)
+        image = read_image_from_memory(image_data)
+        image_shape = image.shape
+        pose_data = extract_pose_data(image)
+        bounding_coords = get_person_bounding_box(pose_data,image_shape)
         prediction = make_prediction_data(pose_data)
-        roll, yaw, pitch = find_pose(pose_data)
-        look = get_gaze_direction(yaw)
-        prediction = prediction +"direction: "+ look
+        prediction = prediction
         if not pose_data:
             raise HTTPException(status_code=404, detail="No pose data could be extracted from the image.")
 
         # Return the extracted pose data
-        return {"prediction": prediction}
+        return {"prediction": prediction,
+                "bounding_box":bounding_coords
+                }
 
     except Exception as e:
         # Handle any unexpected errors
         return {"prediction": "No one found."}
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
-
